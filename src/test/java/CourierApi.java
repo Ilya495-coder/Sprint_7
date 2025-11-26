@@ -18,8 +18,7 @@ public class CourierApi {
                 .body(loginRequest)
                 .when()
                 .post(URL + "/api/v1/courier/login")
-                .then().log().all()
-                .assertThat().statusCode(200);
+                .then().log().all();
     }
 
 @Step("Метод создания юзера")
@@ -29,15 +28,13 @@ public class CourierApi {
                 .body(courier)
                 .when()
                 .post(URL + "/api/v1/courier")
-                .then().log().all()
-                .assertThat().statusCode(201);
+                .then().log().all();
     }
     @Step("Удаление юзера")
     public ValidatableResponse delete(int id ){
         return given()
                 .when()
                 .delete("https://qa-scooter.praktikum-services.ru/api/v1/courier/" + id)
-                .then().log().all()
-                .assertThat().statusCode(200);
+                .then().log().all();
     }
 }

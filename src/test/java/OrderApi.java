@@ -48,4 +48,16 @@ public class OrderApi {
                 .then()
                 .statusCode(200).log().all();
     }
+    @Step("Получение списка заказов возле метро Калужская")
+    public ValidatableResponse getListOrdersMeyto110(){
+        return   given()
+                .when()
+                .get("/api/v1/orders?limit=10&page=0&nearestStation=[\"110\"]").then().log().all();
+    }
+    @Step("Получение 10-ти доступных заказов для взятия курьером")
+    public ValidatableResponse getOpenOrders(){
+        return given()
+                .when()
+                .get("/api/v1/orders?limit=10&page=0").then().log().all();
+    }
 }

@@ -2,6 +2,7 @@ import Courier.LoginRequest;
 import Courier.LoginUserPojo;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,7 @@ public class ScooterTest {
     }
 
 //Создание курьера
+    @DisplayName("Создание курьера, успешный сценарий")
     @Test
     public void postCourier() {
         var courier = LoginUserPojo.random();
@@ -39,84 +41,61 @@ public class ScooterTest {
      assertTrue(created);
         var creds = LoginRequest.fromCourier(courier);
         //авторизуемся чтобы удалить юзера
-        int id = courierApi.logIn(creds)
+       this.id = courierApi.logIn(creds)
                         .extract().path("id");
 
     }
     //Создание курьера с пустым паролем
+    @DisplayName("Создание курьера с пустым паролем")
     @Test
     public void postCourierNoPussword(){
         LoginUserPojo loginUserPojo = new LoginUserPojo("","ninja","saske");
-        Response response = given()
-                .header("Content-type", "application/json")
-                .body(loginUserPojo)
-                .when()
-                .post("/api/v1/courier")
-                .then().extract().response();
-        response.then().assertThat().statusCode(400).body("message", equalTo("Недостаточно данных для создания учетной записи"));
+        courierApi.create(loginUserPojo).statusCode(400).body("message", equalTo("Недостаточно данных для создания учетной записи"));
 
     }
     //Создание курьера с пустым логином
+    @DisplayName("Создание курьера с пустым логином")
     @Test
     public void postCourierNoLogin(){
         LoginUserPojo loginUserPojo = new LoginUserPojo("1234","","saske");
-        Response response = given()
-                .header("Content-type", "application/json")
-                .body(loginUserPojo)
-                .when()
-                .post("/api/v1/courier")
-                .then().extract().response();
-        response.then().assertThat().statusCode(400).body("message", equalTo("Недостаточно данных для создания учетной записи"));
+        courierApi.create(loginUserPojo).statusCode(400).body("message", equalTo("Недостаточно данных для создания учетной записи"));
 
     }
     //Создание курьера с уже существующим логином
+    @DisplayName("Создание курьера с уже существующим логином")
     @Test
     public void postCourierDoubleUser(){
         LoginUserPojo loginUserPojo = new LoginUserPojo("1234","ninja","saske");
-        Response response = given()
-                .header("Content-type", "application/json")
-                .body(loginUserPojo)
-                .when()
-                .post("/api/v1/courier");
-        response.then().assertThat().statusCode(409).body("message", equalTo("Этот логин уже используется"));
+        courierApi.create(loginUserPojo).statusCode(409).body("message", equalTo("Этот логин уже используется"));
 
     }
     //Логин курьера
+    @DisplayName("Авторизация курьера, успешный сценарий")
     @Test
         public void curierAutorized() {
             var courier = LoginUserPojo.random();
             courierApi.create(courier);
             var creds = LoginRequest.fromCourier(courier);
             //авторизуемся
-            int id = courierApi.logIn(creds)
-                    .extract().path("id");
+            this.id = courierApi.logIn(creds).statusCode(200).extract().path("id");
             assertTrue(id > 0);
     }
     //Логин курьера с пустым паролем
+    @DisplayName("Авторизация курьера с пустым паролем")
    @Test
     public void curierAutorizedBadRequest(){
        LoginRequest loginRequest = new LoginRequest("", "ninj4321673432431a");
-       Response response = given()
-               .header("Content-type", "application/json")
-               .body(loginRequest)
-               .when()
-               .post("/api/v1/courier/login");
-       response.then().assertThat().statusCode(400).body("message", equalTo("Недостаточно данных для входа"));
+       courierApi.logIn(loginRequest).statusCode(400).body("message", equalTo("Недостаточно данных для входа"));
     }
 //    //Логин несуществующего курьера
+@DisplayName("Авторизация несуществующего курьера")
     @Test
     public void curierAutorizedNotFound(){
-        String login = "lalala";
-        String password="222";
-        LoginRequest loginRequest = new LoginRequest(password, login);
-        Response response = given()
-                .header("Content-type", "application/json")
-                .body(loginRequest)
-                .when()
-                .post("/api/v1/courier/login");
-        response.then().assertThat().statusCode(404).body("message", equalTo("Учетная запись не найдена"));
+        LoginRequest loginRequest = new LoginRequest("222", "lalala");
+        courierApi.logIn(loginRequest).statusCode(404).body("message", equalTo("Учетная запись не найдена"));
     }
 //    //Создание заказа
+@DisplayName("Создание заказа, успешный сценарий")
     @ParameterizedTest
     @MethodSource("color")
     public void orderCreationAllColor(List<String> color){
@@ -129,38 +108,33 @@ public class ScooterTest {
         return Stream.of(
                 Arrays.asList("BLACK"),
                 Arrays.asList("GREY"),
-                Arrays.asList("GREY,BLACK"),
+                Arrays.asList("GREY", "BLACK"),
                 Arrays.asList("")
         );
     }
-
-    @Test
     /*
     получаем список заказов
     проверяем, что не назначен курьер courierId - пусто
     проверяем, что в ответе 10 заказов
      */
-    public void getListOrders(){
-       Response response =  given()
-                .when()
-                .get("/api/v1/orders?limit=10&page=0");
-        response.then().assertThat()
+    @DisplayName("Получение списка свободных заказов, успешный сценарий")
+    @Test
+    public void getListOrdersCode200(){
+        orderApi.getOpenOrders().assertThat()
                 .statusCode(200)
                 .body("courierId", nullValue())
                 .body("orders.size()", equalTo(10));
-
-    }    @Test
+    }
     /*
     получаем список заказов
     проверяем, что не назначен курьер courierId - пусто
     проверяем, что в ответе 10 заказов
     проверяем, что рядом со станцией Калужская (110)
      */
+    @DisplayName("Получение списка свободных заказов на станции Калужская, успешный сценарий")
+    @Test
     public void getListOrdersMeyto110(){
-        Response response =  given()
-                .when()
-                .get("/api/v1/orders?limit=10&page=0&nearestStation=[\"110\"]");
-        response.then().assertThat()
+        orderApi.getListOrdersMeyto110().assertThat()
                 .statusCode(200)
                 .body("courierId", nullValue())
                 .body("orders.size()", equalTo(10))
@@ -170,6 +144,7 @@ public class ScooterTest {
     Список заказов
     проверяем активные заказы на станции"Бульвар Рокоссовского"(1)
      */
+    @DisplayName("Получение заказов на станции (1), успешный сценарий")
     @Test
     public void getAllOrdersMetro1(){
         //создаем юзера
@@ -178,7 +153,7 @@ public class ScooterTest {
         assertTrue(created);
         var creds = LoginRequest.fromCourier(courier);
         //авторизуемся
-        int courierId = courierApi.logIn(creds).extract().path("id");
+        this.id = courierApi.logIn(creds).extract().path("id");
         //создаем заказ
         ArrayList<String>color = new ArrayList<>();
         color.add("BLACK");
@@ -189,13 +164,13 @@ public class ScooterTest {
         int orderId = orderApi.getOdderNumber(track).extract().path("order.id");
         assertTrue(orderId>0);
         //принимаем заказ
-      boolean resoult =   orderApi.acceptOrder(courierId,orderId).extract().path("ok");
+      boolean resoult =   orderApi.acceptOrder(id,orderId).extract().path("ok");
       assertTrue(resoult);
         //проверяем активные заказы на станции"Бульвар Рокоссовского"(1)
-        Response response = orderApi.getListOrders(courierId).extract().response();
+        Response response = orderApi.getListOrders(id).extract().response();
         System.out.println(response.body().asString());
-      int resoultCouruerId = orderApi.getListOrders(courierId).extract().path("orders[0].courierId");
-               assertEquals(courierId, resoultCouruerId);
+      int resoultCouruerId = orderApi.getListOrders(id).extract().path("orders[0].courierId");
+               assertEquals(id, resoultCouruerId);
     }
 //удаляем юзера
     @AfterEach
