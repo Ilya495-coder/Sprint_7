@@ -1,3 +1,7 @@
+package Courier;
+
+import java.util.UUID;
+
 public class LoginUserPojo {
     public String login;
     public String password;
@@ -7,6 +11,10 @@ public class LoginUserPojo {
         this.password = password;
         this.login = login;
         this.firstName = firstName;
+    }
+    public static LoginUserPojo random(){
+         String login = UUID.randomUUID().toString();
+        return new LoginUserPojo("1234", login, "saske");
     }
 
     public void setFirstName(String firstName) {

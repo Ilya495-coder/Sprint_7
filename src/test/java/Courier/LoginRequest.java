@@ -1,3 +1,5 @@
+package Courier;
+
 public class LoginRequest {
     public String login;
     public String password;
@@ -5,6 +7,9 @@ public class LoginRequest {
     public LoginRequest(String password, String login) {
         this.password = password;
         this.login = login;
+    }
+    public static LoginRequest fromCourier(LoginUserPojo l){
+        return new LoginRequest(l.getPassword(),l.getLogin());
     }
 
     public void setLogin(String login) {

@@ -22,6 +22,9 @@ public class OrdersPojo {
         this.phone = phone;
         this.rentTime = rentTime;
     }
+    public static OrdersPojo getOrder(ArrayList<String> color){
+        return new OrdersPojo("Konoha, 142 apt.", color,"Saske, come back to Konoha","2020-06-06","Naruto","Uchiha",4,"+7 800 355 35 35",5);
+    }
 
     public void setAddress(String address) {
         this.address = address;
