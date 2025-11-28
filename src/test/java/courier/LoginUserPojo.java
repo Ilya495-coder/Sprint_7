@@ -1,4 +1,4 @@
-package Courier;
+package courier;
 
 import java.util.UUID;
 

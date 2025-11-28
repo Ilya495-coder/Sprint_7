@@ -1,4 +1,4 @@
-package Courier;
+package courier;
 
 public class LoginRequest {
     public String login;
