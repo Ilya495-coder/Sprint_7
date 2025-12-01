@@ -13,30 +13,19 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-
-public class PostOrdersTest {
-
-    OrderApi orderApi;
-
-    @BeforeEach
-    public void getUrl() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
-        orderApi = new OrderApi();
-    }
+public class PostOrdersTest extends BaseTest{
 
     //Создание заказа
     @DisplayName("Создание заказа, успешный сценарий")
     @ParameterizedTest
     @MethodSource("color")
 
-
     public void orderCreationAllColor(List<String> color) {
         ArrayList<String> colorList = new ArrayList<>(color);
         var order = OrdersPojo.getOrder(colorList);
-        int track = orderApi.postOrder(order).extract().path("track");
+        int track = orderApi.postOrder(order).statusCode(201).extract().path("track");
         assertNotNull(track);
     }
-
 
     public static Stream<List<String>> color() {
         return Stream.of(Arrays.asList("BLACK"), Arrays.asList("GREY"), Arrays.asList("GREY", "BLACK"), Arrays.asList(""));

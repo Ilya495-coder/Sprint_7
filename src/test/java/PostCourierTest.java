@@ -11,17 +11,8 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PostCourierTest {
-    CourierApi courierApi;
-    OrderApi orderApi;
-    int id;
+public class PostCourierTest extends BaseTest {
 
-    @BeforeEach
-    public void getUrl() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
-        courierApi = new CourierApi();
-        orderApi = new OrderApi();
-    }
 
     //Создание курьера
     @DisplayName("Создание курьера, успешный сценарий")
@@ -31,10 +22,6 @@ public class PostCourierTest {
         boolean created = courierApi.create(courier).statusCode(201)
                 .extract().path("ok");
         assertTrue(created);
-        var creds = LoginRequest.fromCourier(courier);
-        //авторизуемся чтобы удалить юзера
-        this.id = courierApi.logIn(creds).statusCode(200)
-                .extract().path("id");
 
     }
 
@@ -60,16 +47,10 @@ public class PostCourierTest {
     @DisplayName("Создание курьера с уже существующим логином")
     @Test
     public void postCourierDoubleUser() {
-        LoginUserPojo loginUserPojo = new LoginUserPojo("1234", "ninja", "saske");
+        String login = creds.getLogin();
+        LoginUserPojo loginUserPojo = new LoginUserPojo("1234", login, "saske");
         courierApi.create(loginUserPojo).statusCode(409).body("message", equalTo("Этот логин уже используется"));
 
     }
 
-    //удаляем юзера
-    @AfterEach
-    public void deleteUser() {
-        if (id > 0) {
-            courierApi.delete(id);
-        }
-    }
 }

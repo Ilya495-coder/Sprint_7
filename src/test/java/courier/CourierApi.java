@@ -8,16 +8,13 @@ import static io.restassured.RestAssured.given;
 
 public class CourierApi {
 
-    private String URL = "https://qa-scooter.praktikum-services.ru";
-
-
     @Step("Идентификация юзера")
     public ValidatableResponse logIn(LoginRequest loginRequest) {
         return given()
                 .contentType(ContentType.JSON)
                 .body(loginRequest)
                 .when()
-                .post(URL + "/api/v1/courier/login")
+                .post("/api/v1/courier/login")
                 .then().log().all();
     }
 
@@ -27,7 +24,7 @@ public class CourierApi {
                 .contentType(ContentType.JSON)
                 .body(courier)
                 .when()
-                .post(URL + "/api/v1/courier")
+                .post("/api/v1/courier")
                 .then().log().all();
     }
     @Step("Удаление юзера")

@@ -5,8 +5,8 @@ import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import static io.restassured.RestAssured.given;
 
-public class OrderApi {
-    private String URL = "https://qa-scooter.praktikum-services.ru";
+public class OrderApi{
+
 
     @Step("Создание заказа")
     public ValidatableResponse postOrder(OrdersPojo ordersPojo){
@@ -14,9 +14,8 @@ public class OrderApi {
                 .contentType(ContentType.JSON)
                 .body(ordersPojo)
                 .when()
-                .post(URL + "/api/v1/orders")
-                .then().log().all()
-                .assertThat().statusCode(201);
+                .post("/api/v1/orders")
+                .then().log().all();
 
     }
     @Step("Получить заказ по его номеру")
@@ -25,8 +24,7 @@ public class OrderApi {
                 .queryParam("t", track)
                 .when()
                 .get("/api/v1/orders/track")
-                .then()
-                .statusCode(200).log().all();
+                .then().log().all();
 
     }
     @Step("Принять заказ")
@@ -35,9 +33,7 @@ public class OrderApi {
                 .when()
                 .queryParam("courierId", courierId)
                 .put("/api/v1/orders/accept/" + track)
-                .then()
-                .statusCode(200)
-                .log().all();
+                .then().log().all();
 
     }
     @Step("Получение списка заказов")
@@ -47,8 +43,7 @@ public class OrderApi {
                 .queryParam("courierId",courierId)
                 .queryParam("nearestStation","1")
                 .get("/api/v1/orders")
-                .then()
-                .statusCode(200).log().all();
+                .then().log().all();
     }
     @Step("Получение списка заказов возле метро Калужская")
     public ValidatableResponse getListOrdersMeyto110(){

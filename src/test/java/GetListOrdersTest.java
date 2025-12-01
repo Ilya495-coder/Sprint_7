@@ -1,12 +1,9 @@
-import courier.CourierApi;
+
 import courier.LoginRequest;
 import courier.LoginUserPojo;
-import io.restassured.RestAssured;
-import io.restassured.response.Response;
-import order.OrderApi;
+
 import order.OrdersPojo;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -17,22 +14,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class GetListOrdersTest {
-    CourierApi courierApi;
-    OrderApi orderApi;
-    int id;
-    LoginRequest creds;
+public class GetListOrdersTest extends BaseTest {
 
-    @BeforeEach
-    public void getUrl() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
-        courierApi = new CourierApi();
-        orderApi = new OrderApi();
-        var courier = LoginUserPojo.random();
-        courierApi.create(courier);
-        creds = LoginRequest.fromCourier(courier);
-
-    }
 
     /*
 получаем список заказов
@@ -76,25 +59,16 @@ public class GetListOrdersTest {
         color.add("BLACK");
         var order = OrdersPojo.getOrder(color);
         //получаем номер заказа
-        int track = orderApi.postOrder(order).extract().path("track");
+        int track = orderApi.postOrder(order).assertThat().statusCode(201).extract().path("track");
         // Получаем фйди заказа по номеру
-        int orderId = orderApi.getOdderNumber(track).extract().path("order.id");
+        int orderId = orderApi.getOdderNumber(track).statusCode(200).log().all().extract().path("order.id");
         assertTrue(orderId > 0);
         //принимаем заказ
-        boolean resoult = orderApi.acceptOrder(id, orderId).extract().path("ok");
+        boolean resoult = orderApi.acceptOrder(id, orderId).statusCode(200).extract().path("ok");
         assertTrue(resoult);
         //проверяем активные заказы на станции"Бульвар Рокоссовского"(1)
-        Response response = orderApi.getListOrders(id).extract().response();
-        System.out.println(response.body().asString());
+        orderApi.getListOrders(id).statusCode(200).extract().response();
         int resoultCouruerId = orderApi.getListOrders(id).extract().path("orders[0].courierId");
         assertEquals(id, resoultCouruerId);
-    }
-
-    //удаляем юзера
-    @AfterEach
-    public void deleteUser() {
-        if (id > 0) {
-            courierApi.delete(id);
-        }
     }
 }

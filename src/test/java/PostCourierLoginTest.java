@@ -11,62 +11,49 @@ import org.junit.jupiter.api.BeforeEach;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PostCourierLoginTest {
-
-    CourierApi courierApi;
-    OrderApi orderApi;
-    int id;
-    LoginRequest creds;
-
-    @BeforeEach
-    public void getUrl() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
-        courierApi = new CourierApi();
-        orderApi = new OrderApi();
-        var courier = LoginUserPojo.random();
-        courierApi.create(courier);
-        creds = LoginRequest.fromCourier(courier);
-
-    }
-
+public class PostCourierLoginTest extends BaseTest {
 
     //Логин курьера
     @DisplayName("Авторизация курьера, успешный сценарий")
     @Test
     public void curierAutorized() {
         //авторизуемся
-        this.id = courierApi.logIn(creds).statusCode(200).extract().path("id");
+        int id = courierApi.logIn(creds).statusCode(200).extract().path("id");
         assertTrue(id > 0);
     }
 
     //Логин курьера с пустым паролем
-    @DisplayName("Авторизация курьера с пустым паролем")
+    @DisplayName("Авторизация курьера с пустым паролем, но правильным логином")
     @Test
-    public void curierAutorizedBadRequest() {
-        LoginRequest loginRequest = new LoginRequest("", "ninj4321673432431a");
+    public void curierAutorizedNoPassword() {
+        String login = creds.getLogin();
+        LoginRequest loginRequest = new LoginRequest("", login);
+        courierApi.logIn(loginRequest).statusCode(400).body("message", equalTo("Недостаточно данных для входа"));
+    }
+    //Логин курьера с пустым паролем
+    @DisplayName("Авторизация курьера с пустым логином, но правильным паролем")
+    @Test
+    public void curierAutorizedNoLogin() {
+        String password = creds.getPassword();
+        LoginRequest loginRequest = new LoginRequest(password, "");
         courierApi.logIn(loginRequest).statusCode(400).body("message", equalTo("Недостаточно данных для входа"));
     }
 
-    //    //Логин несуществующего курьера
-    @DisplayName("Авторизация не правильный логин")
+    //Логин несуществующего курьера
+    @DisplayName("Авторизация не правильный логин, но верный пароль")
     @Test
     public void curierAutorizedNoExistLogin() {
-        LoginRequest loginRequest = new LoginRequest("222", "lalala");
+        String password = creds.getPassword();
+        LoginRequest loginRequest = new LoginRequest(password, "lalalappppppwwwwwww");
         courierApi.logIn(loginRequest).statusCode(404).body("message", equalTo("Учетная запись не найдена"));
+
     }
 
-    @DisplayName("Авторизация не правильный пароль")
+    @DisplayName("Авторизация не правильный пароль, но верный логин")
     @Test
     public void curierAutorizedNoExistPassword() {
-        LoginRequest loginRequest = new LoginRequest("222", "ninja");
+        String login = creds.getLogin();
+        LoginRequest loginRequest = new LoginRequest("222", login);
         courierApi.logIn(loginRequest).statusCode(404).body("message", equalTo("Учетная запись не найдена"));
-    }
-
-    //удаляем юзера
-    @AfterEach
-    public void deleteUser() {
-        if (id > 0) {
-            courierApi.delete(id);
-        }
     }
 }
