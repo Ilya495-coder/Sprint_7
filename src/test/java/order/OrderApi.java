@@ -1,0 +1,60 @@
+package order;
+
+import io.qameta.allure.Step;
+import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
+import static io.restassured.RestAssured.given;
+
+public class OrderApi{
+
+
+    @Step("Создание заказа")
+    public ValidatableResponse postOrder(OrdersPojo ordersPojo){
+        return given()
+                .contentType(ContentType.JSON)
+                .body(ordersPojo)
+                .when()
+                .post("/api/v1/orders")
+                .then().log().all();
+
+    }
+    @Step("Получить заказ по его номеру")
+    public ValidatableResponse getOdderNumber(int track){
+       return given()
+                .queryParam("t", track)
+                .when()
+                .get("/api/v1/orders/track")
+                .then().log().all();
+
+    }
+    @Step("Принять заказ")
+    public ValidatableResponse acceptOrder(int courierId , int track){
+        return given()
+                .when()
+                .queryParam("courierId", courierId)
+                .put("/api/v1/orders/accept/" + track)
+                .then().log().all();
+
+    }
+    @Step("Получение списка заказов")
+    public ValidatableResponse getListOrders(int courierId){
+        return given()
+                .when()
+                .queryParam("courierId",courierId)
+                .queryParam("nearestStation","1")
+                .get("/api/v1/orders")
+                .then().log().all();
+    }
+    @Step("Получение списка заказов возле метро Калужская")
+    public ValidatableResponse getListOrdersMeyto110(){
+        return   given()
+                .when()
+                .get("/api/v1/orders?limit=10&page=0&nearestStation=[\"110\"]").then().log().all();
+    }
+    @Step("Получение 10-ти доступных заказов для взятия курьером")
+    public ValidatableResponse getOpenOrders(){
+        return given()
+                .when()
+                .get("/api/v1/orders?limit=10&page=0").then().log().all();
+    }
+}
